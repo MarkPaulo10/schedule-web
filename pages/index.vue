@@ -30,6 +30,7 @@
 </template>
 
 <script>
+import Cookies from 'js-cookie';
 import style from '../assets/css/style.css';
 export default {
   name: 'IndexPage',
@@ -43,27 +44,45 @@ export default {
     }
   },
   methods:{
-    login(){
-      this.$refs.ruleForm.validate( valid => {
+    async login(){
+      this.$refs.ruleForm.validate( async valid => {
         if(valid){
-          if(this.form.username == "professor"){
-            this.$notification.success({
-              message: "Success",
-              description: "Logged in successfully"
-            })
-            this.$router.push("/teacher")
-          } else if( this.form.username == "student") {
-            this.$notification.success({
-              message: "Success",
-              description: "Logged in successfully"
-            })
-            this.$router.push("/student")
-          } else {
-            this.$notification.error({
-              message: "Error",
-              description: "Invalid"
-            })
+          try {
+            let {data} = await this.$axios.post("/users/login", this.form);
+            console.log(data)
+            
+            if(data == "Unauthorized"){
+              this.$notification.error({
+                message: "Error",
+                description: "Invalid"
+              })
+            } else {
+              Cookies.set('token', data.token, {expires: 1})
+              let token = Cookies.get('token')
+              let result = await this.$axios.get("/users/profile", {headers: { 'token': token}})
+               if(result.data.role == "professor"){
+                  this.$notification.success({
+                    message: "Success",
+                    description: "Logged in successfully"
+                  })
+                  this.$router.push("/teacher")
+                } else if( result.data.role == "student") {
+                  this.$notification.success({
+                    message: "Success",
+                    description: "Logged in successfully"
+                  })
+                  this.$router.push("/student")
+                } else {
+                  this.$notification.error({
+                    message: "Error",
+                    description: "Invalid"
+                  })
+                }
+            }
+          } catch (error) {
+            console.log(error);
           }
+         
         } else {
           this.$notification.error({
             message: "Error",

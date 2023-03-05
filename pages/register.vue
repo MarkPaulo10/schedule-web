@@ -36,8 +36,27 @@
                                     <a-select-option value="student">Student</a-select-option>
                                 </a-select>
                             </a-form-model-item>
+                            <a-form-model-item label="Subject" v-if="form.role == 'professor'" prop="subject">
+                                <a-input v-model="form.subject"></a-input>
+                            </a-form-model-item>
+                            <a-form-model-item label="Course" v-if="form.role == 'student'" prop="course">
+                                <a-input v-model="form.course"></a-input>
+                            </a-form-model-item>
+                            <a-form-model-item label="Year" v-if="form.role == 'student'" prop="year">
+                                <a-input v-model="form.year"></a-input>
+                            </a-form-model-item>
+                            <a-form-model-item label="Section" v-if="form.role == 'student'" prop="section">
+                                <a-select v-model="form.section">
+                                    <a-select-option value="A">A</a-select-option>
+                                    <a-select-option value="B">B</a-select-option>
+                                    <a-select-option value="C">C</a-select-option>
+                                </a-select>
+                            </a-form-model-item>
                             <a-form-model-item label="Username" prop="username">
                                 <a-input v-model="form.username"></a-input>
+                            </a-form-model-item>
+                            <a-form-model-item label="email" prop="email">
+                                <a-input v-model="form.email"></a-input>
                             </a-form-model-item>
                             <a-form-model-item label="password" prop="password">
                                 <a-input v-model="form.password"></a-input>
@@ -68,27 +87,63 @@ import style from '../assets/css/style.css';
                 fname: { required: true, message: 'Please fill up this field!', trigger: 'change'},
                 lname: { required: true, message: 'Please fill up this field!', trigger: 'change'},
                 role: { required: true, message: 'Please fill up this field!', trigger: 'change'},
+                subject: { required: true, message: 'Please fill up this field!', trigger: 'change'},
+                course: { required: true, message: 'Please fill up this field!', trigger: 'change'},
+                year: { required: true, message: 'Please fill up this field!', trigger: 'change'},
+                section: { required: true, message: 'Please fill up this field!', trigger: 'change'},
                 username: { required: true, message: 'Please fill up this field!', trigger: 'change'},
+                email: { required: true, message: 'Please fill up this field!', trigger: 'change'},
                 password: { required: true, message: 'Please fill up this field!', trigger: 'change'},
                 cPassword: { required: true, message: 'Please fill up this field!', trigger: 'change'},
             }
         };
     },
     methods: {
-        register(){
-            this.$refs.ruleForm.validate(valid => {
+        async register(){
+            this.$refs.ruleForm.validate( async valid => {
                 if(valid){
                     if(this.form.cPassword != this.form.password){
-                        this.$notification.error({
-                            message: 'Error',
-                            description: `Password doesn't match`
-                        })
+                        
+                        try {
+                            this.$notification.error({
+                                message: 'Error',
+                                description: `Password doesn't match`
+                            })
+                           
+                        } catch (error) {
+                            
+                        }
                     } else {
-                        this.$notification.success({
-                            message: 'Success',
-                            description: 'Created account successfully'
-                        })
-                        this.$router.push('/')
+                       
+                        let {data} = await this.$axios.post("/users/", this.form)
+                        if(this.data == 'Username already Exist'){
+                            this.$notification.error({
+                                message: "Error",
+                                description: 'Username Already exist!'
+                            })
+                        } else {
+                            this.$notification.success({
+                                message: 'Success',
+                                description: 'Created account successfully'
+                            })
+                            if(this.form.role == 'professor'){
+                                this.form.userId = data._id
+                                let profdata = await this.$axios.post("/teachers/", this.form)
+                                console.log("profData: >>", profdata.data);
+                                this.form.teacherId = profdata.data._id;
+                                profileResult = await this.$axios.post("/profiles/", this.form)
+                                console.log("profResult:>>", profileResult);
+                                this.$router.push('/')
+                            } else {
+                                this.form.userId = data._id;
+                                let studentData = await this.$axios.post("/students/", this.form);
+                                this.form.studentId = studentData.data._id;
+                                studentResult = await this.$axios.post('/profiles', this.form);
+                                console.log("studentResult", studentResult);
+                                this.$router.push('/')
+                            }
+                        }
+                        
                     }
                 } else {
                     this.$notification.error({

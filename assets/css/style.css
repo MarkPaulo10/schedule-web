@@ -13,7 +13,7 @@
     font-size: 50px;
   }
   .form-body{
-    margin-top: 50px;
+    margin-top: 35px;
     padding: 0 30px;
   }
   .login-btn{
@@ -23,5 +23,5 @@
     padding-top: 150px;
   }
   .cards{
-    width: 500px; height: 60vh;
+    width: 500px; height: 65vh;
   }

@@ -158,9 +158,10 @@ export default {
         },
         onSelect(value){
             this.visible = true
+
         },
         closeModal(){
-            this.visible = false
+            this.addModal = false
         },
         acceptAppointment(){
             console.log('clicked');

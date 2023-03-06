@@ -22,7 +22,7 @@
                             <a-tab-pane key="1" tab="All appointment">
                                 <a-card>
                                     <a-table :data-source="schedules" :columns="columns">
-                                        <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
+                                        <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
                                         <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span>
                                         <span slot="action" slot-scope="rec">
                                             <a-tooltip title="Accept">
@@ -31,7 +31,7 @@
                                             <a-tooltip title="Reject">
                                                 <a-button type="link" icon="close" style="font-size: 24px; color: red;" @click="rejectAppoint(rec)"></a-button>                                    
                                             </a-tooltip>
-                                        </span>
+                                        </span> -->
                                     </a-table>
                                 </a-card>
                             </a-tab-pane>
@@ -68,61 +68,63 @@
                 
             </a-card>
         </a-card>
-        <schedule-modal :visible="addModal" @close="closeModal"/>
+        <student-appointment-modal :visible="showModal" @close="closeModal" :form="form"></student-appointment-modal>
     </div>
 </template>
 
 <script>
 import moment from 'moment';
 export default {
-    layout: 'main',
+    layout: 'header',
     data(){
         return{
-            schedules: [
-                {
-                    _id: 1,
-                    date: '2023-03-03',
-                    studentId: 1,
-                    student: {
-                        _id: 1,
-                        fname: 'park',
-                        lname: 'mruz',
-                        course: 'BSIT',
-                        year: 1,
-                        section: 'a',
-                        description: 'May ipapakiusap'
-                    },
-                    teacherId: 1,
-                    teacher: {
-                        _id: 1,
-                        fname: 'Richard',
-                        lname: 'Gonzales',
-                        subject: 'Math'
-                    }
+            form: {},
+            schedules: [],
+            // schedules: [
+            //     {
+            //         _id: 1,
+            //         date: '2023-03-03',
+            //         studentId: 1,
+            //         student: {
+            //             _id: 1,
+            //             fname: 'park',
+            //             lname: 'mruz',
+            //             course: 'BSIT',
+            //             year: 1,
+            //             section: 'a',
+            //             description: 'May ipapakiusap'
+            //         },
+            //         teacherId: 1,
+            //         teacher: {
+            //             _id: 1,
+            //             fname: 'Richard',
+            //             lname: 'Gonzales',
+            //             subject: 'Math'
+            //         }
                     
-                },
-                {
-                    _id: 2,
-                    date: '2023-03-05',
-                    studentId: 1,
-                    student: {
-                        _id: 1,
-                        fname: 'park',
-                        lname: 'mruz',
-                        course: 'BSIT',
-                        year: 1,
-                        section: 'a',
-                        description: 'About sa grade'
-                    },
-                    teacherId: 1,
-                    teacher: {
-                        _id: 1,
-                        fname: 'Richard',
-                        lname: 'Gonzales'
-                    }
+            //     },
+            //     {
+            //         _id: 2,
+            //         date: '2023-03-05',
+            //         studentId: 1,
+            //         student: {
+            //             _id: 1,
+            //             fname: 'park',
+            //             lname: 'mruz',
+            //             course: 'BSIT',
+            //             year: 1,
+            //             section: 'a',
+            //             description: 'About sa grade'
+            //         },
+            //         teacherId: 1,
+            //         teacher: {
+            //             _id: 1,
+            //             fname: 'Richard',
+            //             lname: 'Gonzales'
+            //         }
                     
-                }
-            ],
+            //     }
+            // ],
             columns: [
                 { 
                     title: 'name',
@@ -147,20 +149,38 @@ export default {
                 },
             ],
             addModal: false,
+            showModal: false
         }
         
     },  
+    async fetch(){
+        await this.getSchedule();
+    },
     methods: {
         hasOpenSchedule(value, dataDate){
-            let date = moment(value).format('YYYY-MM-DD')
+            let date = (value).format('YYYY-MM-DD')
 
             return dataDate === date
         },
+        async getSchedule(){
+            try {
+
+                let {data} = await this.$axios.get('/schedules');
+                this.schedules = data;
+                console.log("result:>>", this.schedules);
+            } catch (error) {
+                console.log(error);
+            }
+            
+        },
         onSelect(value){
-            this.visible = true
+            console.log(value);
+            this.showModal = true
+            console.log(this.showModal);
         },
         closeModal(){
-            this.visible = false
+            this.showModal = false
+            console.log("CLicked");
         },
         acceptAppointment(){
             console.log('clicked');
@@ -169,6 +189,7 @@ export default {
             console.log('clicked')
         },
         addSchedule(){
+            console.log("clicked");
             this.addModal = true
         }
         // openSchedule(value){

@@ -8,7 +8,7 @@
                     </div>
                     <div class="card-body">
                         <a-form-model ref="ruleForm" :rules="rules" :model="form">
-                            <a-row gutter="10">
+                            <a-row :gutter="[10]">
                                 <a-col span="12">
                                     <a-form-model-item label="Frist name" prop="fname">
                                         <a-input v-model="form.fname"></a-input>
@@ -122,11 +122,13 @@ import style from '../assets/css/style.css';
                                 description: 'Username Already exist!'
                             })
                         } else {
-                            this.$notification.success({
-                                message: 'Success',
-                                description: 'Created account successfully'
-                            })
+                            
                             if(this.form.role == 'professor'){
+                                console.log("professor");
+                                this.$notification.success({
+                                    message: 'Success',
+                                    description: 'Created account successfully'
+                                })
                                 this.form.userId = data._id
                                 let profdata = await this.$axios.post("/teachers/", this.form)
                                 console.log("profData: >>", profdata.data);
@@ -134,14 +136,24 @@ import style from '../assets/css/style.css';
                                 profileResult = await this.$axios.post("/profiles/", this.form)
                                 console.log("profResult:>>", profileResult);
                                 this.$router.push('/')
+                                
                             } else {
+                                console.log("student");
+                                this.$notification.success({
+                                    message: 'Success',
+                                    description: 'Created account successfully'
+                                })
+                                
                                 this.form.userId = data._id;
                                 let studentData = await this.$axios.post("/students/", this.form);
                                 this.form.studentId = studentData.data._id;
-                                studentResult = await this.$axios.post('/profiles', this.form);
+                                let studentResult = await this.$axios.post('/profiles', this.form);
                                 console.log("studentResult", studentResult);
                                 this.$router.push('/')
+                                
                             }
+                           
+                            
                         }
                         
                     }

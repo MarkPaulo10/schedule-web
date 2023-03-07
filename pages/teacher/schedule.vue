@@ -6,24 +6,39 @@
                     <h1 style="font-size: 24px;">Schedule</h1>
                 </a-col>
                 <a-col>
-                    <a-button type="primary" @click="addSchedule">Add schedule</a-button>
+                    <a-row type="flex" align="center" :gutter="[50]">
+                        <a-col span="12">
+                            <a-date-picker v-model="date"></a-date-picker>
+                        </a-col>
+                        <!-- <a-col span="8"><a-time-picker use12-hours format="h:mm:ss A" v-model="time"></a-time-picker></a-col> -->
+                        <a-col span="12">
+                            <a-button type="primary" @click="addSchedule">Add schedule</a-button>
+                        </a-col>
+                    </a-row>
+
                 </a-col>
             </a-row>
             <a-card class="main-card">
                 <a-row type="flex" justify="space-between" gutter="30">
                     <a-col span="12">
-                        <a-row type="flex" justify="end">
-                            <a-col>
-                                <a-input placeholder="Search here..." allow-clear @change="filterName"></a-input>
-                            </a-col>
-                        </a-row>
+                       
                         <a-tabs default-active-key="1" type="card" @change="callback">
                           
                             <a-tab-pane key="1" tab="All appointment">
                                 <a-card>
-                                    <a-table :data-source="schedules" :columns="columns">
-                                        <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
-                                        <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span>
+                                    <a-table :data-source="filterPending" :columns="columns">
+                                        <span slot="name" slot-scope="rec">{{ `${rec.student&&rec.student.profile&&rec.student.profile.fname} ${rec.student&&rec.student.profile&&rec.student.profile.lname}` }}</span>
+                                        <span slot="yr&sec" slot-scope="rec">{{ `${rec.student&&rec.student.course} - ${rec.student&&rec.student.year}${rec.student&&rec.student.section}`  }} </span>
+                                        <span slot="date" slot-scope="rec">{{ rec.date }}</span>
+                                        <span slot="status" slot-scope="rec">
+                                            <a-tag
+                                                :color="rec.status == 'pending' ? 'orange' : rec.status == 'approved' ? '#52c41a' : 'volcano'"
+                                            >
+                                            {{ rec.status }}
+                                            </a-tag>
+                                        </span>
+                                        <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
+                                        <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span> -->
                                         <span slot="action" slot-scope="rec">
                                             <a-tooltip title="Accept">
                                                 <a-button type="link" icon="check" style="font-size: 24px;" @click="acceptAppointment(rec)"></a-button>
@@ -36,10 +51,46 @@
                                 </a-card>
                             </a-tab-pane>
                             <a-tab-pane key="2" tab="Accepted" force-render>
-                                Content of Tab Pane 2
+                                <a-table :data-source="filterApproved" :columns="columns">
+                                    <span slot="name" slot-scope="rec">{{ `${rec.student&&rec.student.profile&&rec.student.profile.fname} ${rec.student&&rec.student.profile&&rec.student.profile.lname}` }}</span>
+                                    <span slot="yr&sec" slot-scope="rec">{{ `${rec.student&&rec.student.course} - ${rec.student&&rec.student.year}${rec.student&&rec.student.section}`  }} </span>
+                                    <span slot="date" slot-scope="rec">{{ rec.date }}</span>
+                                    <span slot="status" slot-scope="rec">
+                                        <a-tag
+                                            :color="rec.status == 'pending' ? 'warning' : rec.status == 'approved' ? 'green' : 'volcano'"
+                                        >
+                                        {{ rec.status }}
+                                        </a-tag>
+                                    </span>
+                                    <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
+                                    <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span> -->
+                                    <span slot="action" slot-scope="rec">
+                                        <a-tooltip title="Mark as Done">
+                                            <a-button type="link" icon="check-circle" style="font-size: 24px;" @click="remove(rec)"></a-button>                                    
+                                        </a-tooltip>
+                                    </span>
+                                </a-table>
                             </a-tab-pane>
                             <a-tab-pane key="3" tab="Rejected">
-                                Content of Tab Pane 3
+                                <a-table :data-source="filterRejected" :columns="columns">
+                                    <span slot="name" slot-scope="rec">{{ `${rec.student&&rec.student.profile&&rec.student.profile.fname} ${rec.student&&rec.student.profile&&rec.student.profile.lname}` }}</span>
+                                    <span slot="yr&sec" slot-scope="rec">{{ `${rec.student&&rec.student.course} - ${rec.student&&rec.student.year}${rec.student&&rec.student.section}`  }} </span>
+                                    <span slot="date" slot-scope="rec">{{ rec.date }}</span>
+                                    <span slot="status" slot-scope="rec">
+                                        <a-tag
+                                            :color="rec.status == 'pending' ? '#fccc6c' : rec.status == 'approved' ? '#52c41a' : 'red'"
+                                        >
+                                        {{ rec.status }}
+                                        </a-tag>
+                                    </span>
+                                    <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
+                                    <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span> -->
+                                    <span slot="action" slot-scope="rec">
+                                        <a-tooltip title="Reject">
+                                            <a-button type="link" style="color: red;" @click="remove(rec)">remove</a-button>                                    
+                                        </a-tooltip>
+                                    </span>
+                                </a-table>
                             </a-tab-pane>
                         </a-tabs>
                        
@@ -49,12 +100,23 @@
                         <a-card class="card-height">
                             <a-calendar @select="onSelect" class="card-height">
                                 <template slot="dateCellRender" slot-scope="value">
-                                    <div v-for="item in schedules" :key="item._id">
-                                        <div v-if="hasOpenSchedule(value, item.date)">
-                                            <a-badge status="success"></a-badge>
-                                            <a-badge status="warning" v-if="item.studentId"></a-badge>
+                                    <!-- <div v-if="hasOpenSchedule(value)">
+                                        <a-badge status="succes" />
+                                    </div> -->
+                                    <div class="status">
+                                        <div  v-for="item in schedules" :key="item._id">
+                                            <div v-if="hasOpenSchedule(value, item)">
+                                                <a-badge status="success" />
+                                            </div>
+                                            
+                                        </div>
+                                        <div  v-for="item in filterSchedules" :key="item._id">
+                                            <div v-if="hasAppointment(value, item)">
+                                                <a-badge status="warning" />
+                                            </div>
                                         </div>
                                     </div>
+                                   
                                 </template>
                                 <!-- <ul slot="dateCellRender">
                                     <li v-for="item in schedules" :key="item._id">
@@ -68,61 +130,64 @@
                 
             </a-card>
         </a-card>
-        <schedule-modal :visible="addModal" @close="closeModal"/>
+        <teacher-schedule-modal :visible="addModal" @close="closeModal"/>
     </div>
 </template>
 
 <script>
+import Cookies from 'js-cookie';
 import moment from 'moment';
 export default {
     layout: 'main',
     data(){
         return{
-            schedules: [
-                {
-                    _id: 1,
-                    date: '2023-03-03',
-                    studentId: 1,
-                    student: {
-                        _id: 1,
-                        fname: 'park',
-                        lname: 'mruz',
-                        course: 'BSIT',
-                        year: 1,
-                        section: 'a',
-                        description: 'May ipapakiusap'
-                    },
-                    teacherId: 1,
-                    teacher: {
-                        _id: 1,
-                        fname: 'Richard',
-                        lname: 'Gonzales',
-                        subject: 'Math'
-                    }
+            profInfo: [],
+            schedules: [],
+            // schedules: [
+            //     {
+            //         _id: 1,
+            //         date: '2023-03-03',
+            //         studentId: 1,
+            //         student: {
+            //             _id: 1,
+            //             fname: 'park',
+            //             lname: 'mruz',
+            //             course: 'BSIT',
+            //             year: 1,
+            //             section: 'a',
+            //             description: 'May ipapakiusap'
+            //         },
+            //         teacherId: 1,
+            //         teacher: {
+            //             _id: 1,
+            //             fname: 'Richard',
+            //             lname: 'Gonzales',
+            //             subject: 'Math'
+            //         }
                     
-                },
-                {
-                    _id: 2,
-                    date: '2023-03-05',
-                    studentId: 1,
-                    student: {
-                        _id: 1,
-                        fname: 'park',
-                        lname: 'mruz',
-                        course: 'BSIT',
-                        year: 1,
-                        section: 'a',
-                        description: 'About sa grade'
-                    },
-                    teacherId: 1,
-                    teacher: {
-                        _id: 1,
-                        fname: 'Richard',
-                        lname: 'Gonzales'
-                    }
+            //     },
+            //     {
+            //         _id: 2,
+            //         date: '2023-03-05',
+            //         studentId: 1,
+            //         student: {
+            //             _id: 1,
+            //             fname: 'park',
+            //             lname: 'mruz',
+            //             course: 'BSIT',
+            //             year: 1,
+            //             section: 'a',
+            //             description: 'About sa grade'
+            //         },
+            //         teacherId: 1,
+            //         teacher: {
+            //             _id: 1,
+            //             fname: 'Richard',
+            //             lname: 'Gonzales'
+            //         }
                     
-                }
-            ],
+            //     }
+            // ],
             columns: [
                 { 
                     title: 'name',
@@ -136,9 +201,13 @@ export default {
                 },
                 { 
                     title: 'Date',
-                    dataIndex: 'date',
                     key: 'date',
                     scopedSlots: { customRender: 'date'}
+                },
+                { 
+                    title: 'Status',
+                    key: 'status',
+                    scopedSlots: { customRender: 'status'}
                 },
                 { 
                     title: 'Action',
@@ -147,34 +216,147 @@ export default {
                 },
             ],
             addModal: false,
+            appointmentDisplayed: false,
+            date: '',
+            time: '',
+            searchData: '',
         }
         
     },  
+    computed:{
+        filterPending(value){
+            return this.schedules.filter( e=> e.status == "pending")
+        },
+        filterApproved(){
+            return this.schedules.filter( e => e.status == "approved")
+        },
+        filterRejected(){
+            return this.schedules.filter( e => e.status == "rejected")
+        },
+        filterSchedules(){
+            return this.schedules.filter( e => e.status == "pending" || e.status == "approved")
+        },
+    },
+    async fetch(){
+        await this.getUser();
+        await this.getSchedules();
+    },
     methods: {
-        hasOpenSchedule(value, dataDate){
-            let date = moment(value).format('YYYY-MM-DD')
-
-            return dataDate === date
+        async getUser(){
+            try {
+                let token = Cookies.get('token')
+                let {data} = await this.$axios.get("/users/profile", { headers: { "token": token}})
+                let profData = await this.$axios.get(`/teachers/${data._id}`);
+                this.profInfo = profData.data
+                
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async getSchedules(){
+            try {
+                let {data} = await this.$axios.get(`/schedules/${this.profInfo._id}`)
+                this.schedules = data
+                console.log('this.schedules :>> ', this.schedules);
+                let holder = this.schedules.filter( e => e.status == "pending")
+                // let dataDate = moment(this.schedules.date).format('YYYY-MM-DD');
+                console.log("dateResult", holder);
+                // let date = moment(this.schedules.date).format("YYYY-MM-DD");
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        hasOpenSchedule(value, item){
+     
+            // let scheduleDate = []
+            // this.schedules.forEach( e => scheduleDate.push(moment(e.date).format('YYYY-MM-DD')))
+            if(!item.studentId){
+                let scheduleDate = moment(item.date).format("YYYY-MM-DD")
+                let date = moment(value).format('YYYY-MM-DD')
+                return scheduleDate === date
+            }
+            
+        },
+        hasAppointment(value, item){ 
+            if(item.studentId){
+                let scheduleDate = moment(item.date).format("YYYY-MM-DD")
+                let date = moment(value).format('YYYY-MM-DD')
+                this.appointmentDisplayed == true;
+                return scheduleDate === date
+            }
+            
         },
         onSelect(value){
             this.visible = true
 
         },
         closeModal(){
-            this.addModal = false
+            this.addModal = false;
         },
-        acceptAppointment(){
-            console.log('clicked');
+        async acceptAppointment(item){
+            try {
+                let {data} = await this.$axios.put(`/schedules/${item._id}`, {status: "approved"})
+                console.log("acceptResult:>>", data);
+                await this.$fetch();
+            } catch (error) {
+                console.log(error);
+            }
         },
-        rejectAppoint(){
-            console.log('clicked')
+        async rejectAppoint(item){
+            try {
+                let {data} = await this.$axios.put(`/schedules/${item._id}`, { status: "rejected"})
+                console.log("rejectResult: >>", data)
+                await this.$fetch();
+            } catch (error) {
+                console.log(error);
+            }
         },
-        addSchedule(){
-            this.addModal = true
-        }
-        // openSchedule(value){
-
-        // }
+        async remove (item){
+            try {
+                let {data}  = await this.$axios.put(`/schedules/${item._id}`, { status: "done"})
+                console.log("result: >>", data);
+                await this.$fetch();
+            } catch (error) {
+                
+            }
+        },
+        async addSchedule(){
+            try {
+                if(!this.date){
+                    this.$notification.error({
+                        message: 'Error',
+                        description: 'Please date and time fields!'
+                    })
+                }else {
+                    let alreadyOpen = this.schedules.filter( e => moment(e.date).format("YYYY-MM-DD") == moment(this.date).format("YYYY-MM-DD"))
+                    if(!alreadyOpen.length){
+                        let result = await this.$axios.post('/schedules', {
+                            date: this.date,
+                            teacherId: this.profInfo._id
+                        })
+                        console.log(result);
+                        await this.$fetch();
+                        
+                    } else {
+                        this.$notification.warning({
+                            message: "warning",
+                            description: 'You already open this date'
+                        })
+                    }
+                    // let result = await this.$axios.post('/schedules', {
+                    //     date: this.date,
+                    //     teacherId: this.profInfo._id
+                    // })
+                    // console.log("result: >>", result);
+                }
+                // console.log(this.profInfo);
+               
+            } catch (error) {
+                
+            }
+        },
+        
+        
     }
 }
 </script>
@@ -201,10 +383,19 @@ export default {
     width: 40px;
 }
 .ant-fullcalendar-content{
-    height: 40px !important;
-    width: 80px;
+    height: 30px !important;
+    width: 40px;
 }
 .ant-tabs-bar{
     margin: 0;
+}
+.ant-fullcalendar-value{
+    font-size: 11px;
+    height: 15px;
+    width: 20px;
+}
+.status{
+    display: flex;
+    justify-content: center;
 }
 </style>

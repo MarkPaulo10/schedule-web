@@ -77,6 +77,7 @@
 </template>
   
 <script>
+import { urlToHttpOptions } from 'url';
 import style from '../assets/css/style.css';
   export default {
     name: "IndexPage",
@@ -116,6 +117,7 @@ import style from '../assets/css/style.css';
                     } else {
                        
                         let {data} = await this.$axios.post("/users/", this.form)
+                       
                         if(this.data == 'Username already Exist'){
                             this.$notification.error({
                                 message: "Error",
@@ -129,13 +131,12 @@ import style from '../assets/css/style.css';
                                     message: 'Success',
                                     description: 'Created account successfully'
                                 })
+                                this.$router.push('/')
+                                let profileResult = await this.$axios.post("/profiles/", this.form)
+                                this.form.profileId = profileResult.data._id 
                                 this.form.userId = data._id
                                 let profdata = await this.$axios.post("/teachers/", this.form)
-                                console.log("profData: >>", profdata.data);
-                                this.form.teacherId = profdata.data._id;
-                                profileResult = await this.$axios.post("/profiles/", this.form)
-                                console.log("profResult:>>", profileResult);
-                                this.$router.push('/')
+                                console.log("profData: >>", profdata.data); 
                                 
                             } else {
                                 console.log("student");
@@ -143,14 +144,13 @@ import style from '../assets/css/style.css';
                                     message: 'Success',
                                     description: 'Created account successfully'
                                 })
-                                
-                                this.form.userId = data._id;
-                                let studentData = await this.$axios.post("/students/", this.form);
-                                this.form.studentId = studentData.data._id;
-                                let studentResult = await this.$axios.post('/profiles', this.form);
-                                console.log("studentResult", studentResult);
                                 this.$router.push('/')
-                                
+                                let profileResult = await this.$axios.post("/profiles/", this.form)
+                                console.log(profileResult.data);
+                                this.form.profileId = profileResult.data._id;
+                                this.form.userId = data._id
+                                let studentData = await this.$axios.post("/students/", this.form);
+                                console.log("StudentData: >> ",studentData);
                             }
                            
                             

@@ -3,64 +3,52 @@
         <a-card>
             <a-row type="flex" justify="space-between" align="center">
                 <a-col>
-                    <h1 style="font-size: 24px;">Schedule</h1>
-                </a-col>
-                <a-col>
-                    <a-button type="primary" @click="addSchedule">Add schedule</a-button>
+                    <h1 style="font-size: 24px;">Set Appointment</h1>
                 </a-col>
             </a-row>
             <a-card class="main-card">
                 <a-row type="flex" justify="space-between" gutter="30">
                     <a-col span="12">
-                        <a-row type="flex" justify="end">
-                            <a-col>
-                                <a-input placeholder="Search here..." allow-clear @change="filterName"></a-input>
-                            </a-col>
+                        <a-row type="flex" justify="center">
+                            <a-card class="appointment-card">
+                                <a-form-model ref="ruleForm" :rules="rules" :model="form" >
+                                    <a-form-model-item label="Date" prop="date">
+                                        <a-date-picker v-model="form.date" @change="searchDate">
+                                        </a-date-picker>
+                                    </a-form-model-item>
+                                    <a-form-model-item label="Professor">
+                                        <a-select v-model="form.teacherId">
+                                            <a-select-option v-for="item in filterTeacher" :key="item._id" :value="item.teacherId">
+                                                {{ `${item.teacher&&item.teacher.profile&&item.teacher.profile.fname} ${item.teacher&&item.teacher.profile&&item.teacher.profile.lname}` }}
+                                            </a-select-option>
+                                        </a-select>
+                                    </a-form-model-item>
+                                    <a-row type="flex" justify="center">
+                                        <a-col>
+                                            <a-button type="primary" @click="submit">Submit</a-button>
+                                        </a-col>
+                                    </a-row>
+                                    
+                                </a-form-model>
+                            </a-card>
                         </a-row>
-                        <a-tabs default-active-key="1" type="card" @change="callback">
-                          
-                            <a-tab-pane key="1" tab="All appointment">
-                                <a-card>
-                                    <a-table :data-source="schedules" :columns="columns">
-                                        <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
-                                        <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span>
-                                        <span slot="action" slot-scope="rec">
-                                            <a-tooltip title="Accept">
-                                                <a-button type="link" icon="check" style="font-size: 24px;" @click="acceptAppointment(rec)"></a-button>
-                                            </a-tooltip>
-                                            <a-tooltip title="Reject">
-                                                <a-button type="link" icon="close" style="font-size: 24px; color: red;" @click="rejectAppoint(rec)"></a-button>                                    
-                                            </a-tooltip>
-                                        </span> -->
-                                    </a-table>
-                                </a-card>
-                            </a-tab-pane>
-                            <a-tab-pane key="2" tab="Accepted" force-render>
-                                Content of Tab Pane 2
-                            </a-tab-pane>
-                            <a-tab-pane key="3" tab="Rejected">
-                                Content of Tab Pane 3
-                            </a-tab-pane>
-                        </a-tabs>
-                       
-                        
                     </a-col>
                     <a-col span="12">
                         <a-card class="card-height">
-                            <a-calendar @select="onSelect" class="card-height">
+                            <a-calendar class="card-height">
                                 <template slot="dateCellRender" slot-scope="value">
-                                    <div v-for="item in schedules" :key="item._id">
-                                        <div v-if="hasOpenSchedule(value, item.date)">
-                                            <a-badge status="success"></a-badge>
-                                            <a-badge status="warning" v-if="item.studentId"></a-badge>
+                                    <!-- <div v-if="hasOpenSchedule(value)">
+                                        <a-badge status="succes" />
+                                    </div> -->
+                                    <div class="status">
+                                        <div  v-for="item in schedules" :key="item._id">
+                                            <div v-if="hasOpenSchedule(value, item)">
+                                                <a-badge status="success" />
+                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </template>
-                                <!-- <ul slot="dateCellRender">
-                                    <li v-for="item in schedules" :key="item._id">
-                                        <a-badge :status="!item.date ? '' : 'success'">{{ item.student.fname + ' ' + item.student.lname + ' booked this day' }}</a-badge>
-                                    </li>
-                                </ul> -->
                             </a-calendar>
                         </a-card>
                     </a-col>
@@ -68,17 +56,19 @@
                 
             </a-card>
         </a-card>
-        <student-appointment-modal :visible="showModal" @close="closeModal" :form="form"></student-appointment-modal>
     </div>
 </template>
 
 <script>
 import moment from 'moment';
+import Cookies from 'js-cookie';
+import { off } from 'process';
 export default {
     layout: 'header',
     data(){
         return{
             form: {},
+            students: [],
             schedules: [],
             // schedules: [
             //     {
@@ -148,49 +138,94 @@ export default {
                     scopedSlots: { customRender: 'action'}
                 },
             ],
+            rules: {
+                date: { required: true, message: 'Please fill up this field!', trigger: 'change'},
+                teacher: { required: true, message: 'Please fill up this field!', trigger: 'change'},
+            },
             addModal: false,
-            showModal: false
+            showModal: false,
+            filterTeacher: [],
+            activeDate: '',
+            professorData: ''
         }
         
-    },  
+    },
     async fetch(){
+        await this.getStudent();
         await this.getSchedule();
     },
     methods: {
-        hasOpenSchedule(value, dataDate){
-            let date = (value).format('YYYY-MM-DD')
+        async getStudent(){
+           try {
+             let token = Cookies.get('token');
+             let {data} = await this.$axios.get("/users/profile", { headers: { "token": token}});
+             let studentData = await this.$axios.get(`/students/${data._id}`);
 
-            return dataDate === date
+             this.students = studentData.data
+           } catch (error) {
+            console.log(error);
+           }
+            // let {data} 
         },
         async getSchedule(){
             try {
 
                 let {data} = await this.$axios.get('/schedules');
-                this.schedules = data;
+                let result = data.filter(e => !e.studentId)
+                this.schedules = result;
                 console.log("result:>>", this.schedules);
             } catch (error) {
                 console.log(error);
             }
             
         },
-        onSelect(value){
+        hasOpenSchedule(value, item){
+            if(!item.studentId){
+                let scheduleDate = moment(item.date).format("YYYY-MM-DD")
+                let date = moment(value).format('YYYY-MM-DD')
+                return scheduleDate === date
+            }
+        },
+        searchDate(value){
+            let date = moment(value).format("YYYY-MM-DD")
+            console.log("date", date);
+            let result = this.schedules.filter( e => moment(e.date).format("YYYY-MM-DD") == moment(date).format("YYYY-MM-DD") && !e.studentId)
+            console.log("result", result );
+            this.filterTeacher = result;
+            if(!result.length){
+                this.form.teacherId = '';
+            }
+        },
+        async submit(){
+            try {
+                this.$refs.ruleForm.validate( async valid => {
+                    if(valid){
+                        this.form.studentId = this.students._id
+                        this.form.status = "pending"
+                        console.log("form: >>", this.form); 
+                        if(!this.form.teacherId){
+                            this.$notification.error({
+                                message: 'Error',
+                                description: 'Invalid'
+                            })
+                        } else {
+                            let {data} = await this.$axios.post("/schedules/appointment", this.form);
+                            console.log("result: >>", data);
+                        }
+                    } else {
+                        this.$notification.error({
+                            message: 'Error',
+                            description: 'Invalid'
+                        })
+                    }
+                })
+            } catch (error) {
+                console.log(error);
+            }
+            
+        },
+        value(value){
             console.log(value);
-            this.showModal = true
-            console.log(this.showModal);
-        },
-        closeModal(){
-            this.showModal = false
-            console.log("CLicked");
-        },
-        acceptAppointment(){
-            console.log('clicked');
-        },
-        rejectAppoint(){
-            console.log('clicked')
-        },
-        addSchedule(){
-            console.log("clicked");
-            this.addModal = true
         }
         // openSchedule(value){
 
@@ -221,10 +256,23 @@ export default {
     width: 40px;
 }
 .ant-fullcalendar-content{
-    height: 40px !important;
-    width: 80px;
+    height: 30px !important;
+    width: 40px;
 }
 .ant-tabs-bar{
     margin: 0;
+}
+.ant-fullcalendar-value{
+    font-size: 11px;
+    height: 15px;
+    width: 20px;
+}
+.status{
+    display: flex;
+    justify-content: center;
+}
+.appointment-card{
+    height: 46vh;
+    width: 100%;
 }
 </style>

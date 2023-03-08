@@ -209,8 +209,31 @@ export default {
                                 description: 'Invalid'
                             })
                         } else {
-                            let {data} = await this.$axios.post("/schedules/appointment", this.form);
-                            console.log("result: >>", data);
+                            let {data} = await this.$axios.get('/schedules');
+                            let date = moment(this.form.date).format('YYYY-MM-DD');
+                            let result = data.filter( e => e.studentId == this.form.studentId && e.teacherId == this.form.teacherId && moment(e.date).format("YYYY-MM-DD") == date)
+                           console.log("schedules: >>", result);
+                           if(result.length){
+                            this.$notification.error({
+                                message: 'Error',
+                                description: 'You already set an appointment here!'
+                            })
+                           } else {
+                                this.$notification.success({
+                                    message: 'Success',
+                                    description: 'Succcessfully set an appointment!'
+                                })
+                                let result = await this.$axios.get("/schedules/appointment", this.form);
+                                console.log("appointment: >>", result);
+                           }
+                           
+                            // this.$notification.success({
+                            //     message: 'Success',
+                            //     description: 'Succcessfully set an appointment!'
+                            // })
+                            // console.log("this.form",this.form);
+                            // let {data} = await this.$axios.post("/schedules/appointment", this.form);
+                            // console.log("result: >>", data);
                         }
                     } else {
                         this.$notification.error({

@@ -1,25 +1,35 @@
 <template>
   <div class="body">
+    {{  $breakpoints }}
     <a-row type="flex" justify="center" >
+     
       <div class="card-position">
-        <a-card class="cards">
+        <a-card class="cards" :style="$breakpoints.xs ? 'width: 100%; height: 400px' : ''">
           <a-row type="flex" justify="center">
-            <h1 class="title">Login</h1> 
+            <h1 class="title" :style="$breakpoints.sSm ? 'font-size: 36px' : ''">Login</h1>  
+            
           </a-row>
-          <div class="form-body">
+
+          <div class="form-body" :style="$breakpoints.xs ? 'margin-top: 0px' : ''">
             <a-form-model :model="form" :rules="rules" ref="ruleForm">
-              <a-form-model-item label="Username" prop="username">
-                <a-input v-model="form.username" ></a-input>
-              </a-form-model-item>
-              <a-form-model-item label="Password" prop="password">
-                <a-input v-model="form.password"></a-input>
-              </a-form-model-item>
-              <div class="login-btn">
-                <a-button type="primary" block @click="login">Login</a-button>
-              </div>
-              <div style="margin-top: 20px;">
-                <p>No account click here! <a @click="$router.push('/register')">Create account</a></p>
-              </div>
+              <a-row >
+                <a-col :span="$breakpoints.xs ? '24' : ''">
+                  <a-form-model-item label="Username" prop="username">
+                    <a-input v-model="form.username" ></a-input>
+                  </a-form-model-item>
+                  <a-form-model-item label="Password" prop="password">
+                    <a-input-password v-model="form.password"></a-input-password>
+                  </a-form-model-item>
+                  <div class="login-btn">
+                    <a-button type="primary" block @click="login">Login</a-button>
+                  </div>
+                  <div style="margin-top: 20px;">
+                    <p>No account click here! <a @click="$router.push('/register')">Create account</a></p>
+                  </div>
+                </a-col>
+              </a-row>
+           
+             
             </a-form-model>
           </div>             
         </a-card>

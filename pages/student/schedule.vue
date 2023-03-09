@@ -1,60 +1,93 @@
 <template>
     <div >
+        <a-card :style=" $breakpoints.xs ? 'margin-bottom: 30px' : 'margin-bottom: 30px; padding: 10px'">
+            <span :style=" $breakpoints.md ? 'font-size: 25px;' : $breakpoints.xs ? 'font-size: 20px' : 'font-size: 36px'">Schedule</span>
+            <!-- {{ $breakpoints}} -->
+        </a-card>
         <a-card>
             <a-row type="flex" justify="space-between" align="center">
                 <a-col>
                     <h1 style="font-size: 24px;">Set Appointment</h1>
                 </a-col>
             </a-row>
-            <a-card class="main-card">
-                <a-row type="flex" justify="space-between" gutter="30">
-                    <a-col span="12">
-                        <a-row type="flex" justify="center">
+        
+            <a-row type="flex" justify="space-between" :gutter="[30,20]">
+                <a-col :span="$breakpoints.sLg ? 24 : 12">
+                    <a-row type="flex" justify="center" :gutter="[0,20]">
+                        <a-col :span="24">
                             <a-card class="appointment-card">
                                 <a-form-model ref="ruleForm" :rules="rules" :model="form" >
-                                    <a-form-model-item label="Date" prop="date">
-                                        <a-date-picker v-model="form.date" @change="searchDate">
-                                        </a-date-picker>
-                                    </a-form-model-item>
-                                    <a-form-model-item label="Professor">
-                                        <a-select v-model="form.teacherId">
-                                            <a-select-option v-for="item in filterTeacher" :key="item._id" :value="item.teacherId">
-                                                {{ `${item.teacher&&item.teacher.profile&&item.teacher.profile.fname} ${item.teacher&&item.teacher.profile&&item.teacher.profile.lname}` }}
-                                            </a-select-option>
-                                        </a-select>
-                                    </a-form-model-item>
-                                    <a-row type="flex" justify="center">
-                                        <a-col>
-                                            <a-button type="primary" @click="submit">Submit</a-button>
+                                    <a-row type="flex" :gutter="[10]">
+                                        <a-col :span="12">
+                                            <a-form-model-item label="Date" prop="date">
+                                                <a-date-picker v-model="form.date" @change="searchDate" />
+                                            </a-form-model-item>
+                                        </a-col>
+                                        <a-col :span="12">
+                                            <a-form-model-item label="Professor">
+                                                <a-select v-model="form.teacherId">
+                                                    <a-select-option v-for="item in filterTeacher" :key="item._id" :value="item.teacherId">
+                                                        {{  nameFormater(item) }}
+                                                    </a-select-option>
+                                                </a-select>
+                                            </a-form-model-item>
                                         </a-col>
                                     </a-row>
-                                    
                                 </a-form-model>
+                                <a-row :gutter="[0,20]">
+                                    <a-col>
+                                        <a-row type="flex" justify="center" >
+                                            <a-button @click="submit">Submit</a-button>
+                                        </a-row>
+                                    </a-col>
+                                    <a-col :span="24">
+                                        <a-table :data-source="appointments" :columns="columns" :scroll="$breakpoints.xs ? {x: 500} : {}">
+                                            <span slot="name" slot-scope="rec">{{ nameFormater(rec) }}</span>
+                                            <span slot="status" slot-scope="rec">
+                                                <a-tag
+                                                    :color="rec.status == 'pending' ? 'orange' : rec.status == 'approved' || rec.status == 'done' ? 'green' : rec.status == 'rejected' ? 'red' : 'volcano' "
+                                                >
+                                                    {{ rec.status }}
+                                                </a-tag>
+                                            </span>
+                                            <span slot="date" slot-scope="rec">{{ dateFormatter(rec.date)}}</span>
+                                            <span slot="action" slot-scope="rec" style="display: flex; justify-content: center;">
+                                                <a 
+                                                :style="rec.status == 'done' || rec.status == 'rejected' ? 'color: green; font-size: 16px;' : rec.status == 'approved' || rec.status == 'pending' ? 'color: red;  font-size: 16px;' : '  font-size: 16px;'" 
+                                                @click="
+                                                    rec.status == 'approved' || rec.status == 'pending' ? cancel(rec): 
+                                                    rec.status == 'cancelled' ? setAppointment(rec) :
+                                                    remove(rec)
+                                                    "
+                                                >
+                                                    {{ rec.status == 'cancelled' ? "Submit" : rec.status == 'approved' || rec.status == 'pending' ? 'Cancel' : '' }}
+                                                    <a-icon type="check" v-if="rec.status == 'done' || rec.status == 'rejected'" />
+                                                </a>
+                                            </span>
+                                        </a-table>
+                                    </a-col>
+                                </a-row>
                             </a-card>
-                        </a-row>
-                    </a-col>
-                    <a-col span="12">
-                        <a-card class="card-height">
-                            <a-calendar class="card-height">
-                                <template slot="dateCellRender" slot-scope="value">
-                                    <!-- <div v-if="hasOpenSchedule(value)">
-                                        <a-badge status="succes" />
-                                    </div> -->
-                                    <div class="status">
-                                        <div  v-for="item in schedules" :key="item._id">
-                                            <div v-if="hasOpenSchedule(value, item)">
-                                                <a-badge status="success" />
-                                            </div>
-                                            
+                        </a-col> 
+                    </a-row>
+                </a-col>
+                <a-col :span="$breakpoints.sLg ? '24' : '12'">
+                    <a-card class="card-height">
+                        <a-calendar class="card-height">
+                            <template slot="dateCellRender" slot-scope="value">
+                                <div class="status">
+                                    <div  v-for="item in schedules" :key="item._id">
+                                        <div v-if="hasOpenSchedule(value, item)">
+                                            <a-badge status="success" />
                                         </div>
+                                        
                                     </div>
-                                </template>
-                            </a-calendar>
-                        </a-card>
-                    </a-col>
-                </a-row>
-                
-            </a-card>
+                                </div>
+                            </template>
+                        </a-calendar>
+                    </a-card>
+                </a-col>
+            </a-row>
         </a-card>
     </div>
 </template>
@@ -62,7 +95,6 @@
 <script>
 import moment from 'moment';
 import Cookies from 'js-cookie';
-import { off } from 'process';
 export default {
     layout: 'header',
     data(){
@@ -70,6 +102,7 @@ export default {
             form: {},
             students: [],
             schedules: [],
+            appointments: [],
             // schedules: [
             //     {
             //         _id: 1,
@@ -117,20 +150,19 @@ export default {
             // ],
             columns: [
                 { 
-                    title: 'name',
+                    title: 'Name',
                     key: 'name',
                     scopedSlots: { customRender: 'name'}
                 },
                 { 
-                    title: 'Course - Yr&Sc',
-                    key: 'yr&sec',
-                    scopedSlots: { customRender: 'yr&sec'}
-                },
-                { 
                     title: 'Date',
-                    dataIndex: 'date',
                     key: 'date',
                     scopedSlots: { customRender: 'date'}
+                },
+                { 
+                    title: 'Status',
+                    key: 'status',
+                    scopedSlots: { customRender: 'status'}
                 },
                 { 
                     title: 'Action',
@@ -153,6 +185,7 @@ export default {
     async fetch(){
         await this.getStudent();
         await this.getSchedule();
+        await this.getAppointment();
     },
     methods: {
         async getStudent(){
@@ -160,7 +193,6 @@ export default {
              let token = Cookies.get('token');
              let {data} = await this.$axios.get("/users/profile", { headers: { "token": token}});
              let studentData = await this.$axios.get(`/students/${data._id}`);
-
              this.students = studentData.data
            } catch (error) {
             console.log(error);
@@ -172,12 +204,20 @@ export default {
 
                 let {data} = await this.$axios.get('/schedules');
                 let result = data.filter(e => !e.studentId)
-                this.schedules = result;
+                let active = result.filter( e => e.isActive);
+                this.schedules = active;
                 console.log("result:>>", this.schedules);
             } catch (error) {
                 console.log(error);
             }
             
+        },
+        async getAppointment(){
+            let {data} = await this.$axios.get("/schedules");
+            let result = data.filter( e => e.studentId == this.students._id)
+            let active = result.filter(e => e.isActive)
+            this.appointments = active;
+            console.log(this.appointments);
         },
         hasOpenSchedule(value, item){
             if(!item.studentId){
@@ -189,12 +229,16 @@ export default {
         searchDate(value){
             let date = moment(value).format("YYYY-MM-DD")
             console.log("date", date);
-            let result = this.schedules.filter( e => moment(e.date).format("YYYY-MM-DD") == moment(date).format("YYYY-MM-DD") && !e.studentId)
-            console.log("result", result );
-            this.filterTeacher = result;
-            if(!result.length){
-                this.form.teacherId = '';
+            if(value){
+                let result = this.schedules.filter( e => moment(e.date).format("YYYY-MM-DD") == moment(date).format("YYYY-MM-DD") && !e.studentId)
+                console.log("result", result );
+                this.filterTeacher = result;
+                if(!result.length){
+                    this.form.teacherId = '';
+                }
+
             }
+            
         },
         async submit(){
             try {
@@ -223,17 +267,17 @@ export default {
                                     message: 'Success',
                                     description: 'Succcessfully set an appointment!'
                                 })
-                                let result = await this.$axios.get("/schedules/appointment", this.form);
-                                console.log("appointment: >>", result);
+                                console.log("this form", this.form);
+                                // let result = await this.$axios.get("/schedules/appointment", this.form);
+                                // console.log("appointment: >>", result);
+                                console.log("this.form",this.form);
+                                let appointment = await this.$axios.post("/schedules/appointment", this.form);
+                                console.log("result: >>", appointment);
+                                this.form.teacherId = "";
+                                await this.$fetch();
                            }
                            
-                            // this.$notification.success({
-                            //     message: 'Success',
-                            //     description: 'Succcessfully set an appointment!'
-                            // })
-                            // console.log("this.form",this.form);
-                            // let {data} = await this.$axios.post("/schedules/appointment", this.form);
-                            // console.log("result: >>", data);
+                            
                         }
                     } else {
                         this.$notification.error({
@@ -249,7 +293,45 @@ export default {
         },
         value(value){
             console.log(value);
+        },
+        dateFormatter(date){
+            let month = new Date(date).toString().split(' ')[1];
+            let splitter = new Date(date).toLocaleDateString().split('/');
+            return `${month} ${splitter[1]}, ${splitter[2]}`;
+        },
+        nameFormater(item){
+
+            return `${item.teacher&&item.teacher.profile&&item.teacher.profile.fname} ${item.teacher&&item.teacher.profile&&item.teacher.profile.lname} `
+        },
+        async cancel(item){
+            try {
+                console.log("cancel");
+                console.log("cancel: >>", item);
+                let {data} = await this.$axios.put(`/schedules/${item._id}`, { status: 'cancelled'})
+                await this.$fetch();
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async setAppointment(item){
+            try {
+                let {data} = await this.$axios.put(`/schedules/${item._id}`, { status: 'pending'})
+                await this.$fetch();
+
+            } catch (error) {
+                console.log(error);
+            }
+            console.log("submit");
+        },
+        async remove(rec){
+            try {
+                let {data} = await this.$axios.put(`/schedules/${item._id}`, { isActive: false })
+                await this.$fetch();
+            } catch (error) {
+                console.log(error);
+            }
         }
+
         // openSchedule(value){
 
         // }
@@ -258,13 +340,13 @@ export default {
 </script>
 
 <style>
-.main-card{
+/* .main-card{
     height: 70vh;
-}
-.card-height{
+} */
+/* .card-height{
     padding: 0;
     height: 450px;
-}
+} */
 .card-height .ant-card-body{
     padding: 0;
 }
@@ -294,8 +376,5 @@ export default {
     display: flex;
     justify-content: center;
 }
-.appointment-card{
-    height: 46vh;
-    width: 100%;
-}
+
 </style>

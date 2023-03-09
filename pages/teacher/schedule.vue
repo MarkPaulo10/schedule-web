@@ -1,16 +1,15 @@
 <template>
     <div >
+        <a-card :style=" $breakpoints.xs ? 'margin-bottom: 30px' : 'margin-bottom: 30px; padding: 20px'">
+            <span :style=" $breakpoints.md ? 'font-size: 25px;' : $breakpoints.xs ? 'font-size: 20px' : 'font-size: 36px'">Schedule</span>
+        </a-card>
         <a-card>
-            <a-row type="flex" justify="space-between" align="center">
-                <a-col>
-                    <h1 style="font-size: 24px;">Schedule</h1>
-                </a-col>
+            <a-row type="flex" justify="end" align="center" style="margin-bottom:10px">
                 <a-col>
                     <a-row type="flex" align="center" :gutter="[50]">
                         <a-col span="12">
                             <a-date-picker v-model="date"></a-date-picker>
                         </a-col>
-                        <!-- <a-col span="8"><a-time-picker use12-hours format="h:mm:ss A" v-model="time"></a-time-picker></a-col> -->
                         <a-col span="12">
                             <a-button type="primary" @click="addSchedule">Add schedule</a-button>
                         </a-col>
@@ -18,15 +17,15 @@
 
                 </a-col>
             </a-row>
-            <a-card class="main-card">
-                <a-row type="flex" justify="space-between" gutter="30">
-                    <a-col span="12">
+            <a-card class="">
+                <a-row type="flex" justify="space-between" :gutter="[30, 20]">
+                    <a-col :span="$breakpoints.sLg ? 24 : 12">
                        
                         <a-tabs default-active-key="1" type="card" @change="callback">
                           
                             <a-tab-pane key="1" tab="All appointment">
                                 <a-card>
-                                    <a-table :data-source="filterPending" :columns="columns">
+                                    <a-table :data-source="filterPending" :columns="columns" :scroll="{ x: 500, y: 300 }">
                                         <span slot="name" slot-scope="rec">{{ `${rec.student&&rec.student.profile&&rec.student.profile.fname} ${rec.student&&rec.student.profile&&rec.student.profile.lname}` }}</span>
                                         <span slot="yr&sec" slot-scope="rec">{{ `${rec.student&&rec.student.course} - ${rec.student&&rec.student.year}${rec.student&&rec.student.section}`  }} </span>
                                         <span slot="date" slot-scope="rec">{{ rec.date }}</span>
@@ -37,8 +36,6 @@
                                             {{ rec.status }}
                                             </a-tag>
                                         </span>
-                                        <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
-                                        <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span> -->
                                         <span slot="action" slot-scope="rec">
                                             <a-tooltip title="Accept">
                                                 <a-button type="link" icon="check" style="font-size: 24px;" @click="acceptAppointment(rec)"></a-button>
@@ -51,7 +48,7 @@
                                 </a-card>
                             </a-tab-pane>
                             <a-tab-pane key="2" tab="Accepted" force-render>
-                                <a-table :data-source="filterApproved" :columns="columns">
+                                <a-table :data-source="filterApproved" :columns="columns" :scroll="{ x: 500, y: 300 }">
                                     <span slot="name" slot-scope="rec">{{ `${rec.student&&rec.student.profile&&rec.student.profile.fname} ${rec.student&&rec.student.profile&&rec.student.profile.lname}` }}</span>
                                     <span slot="yr&sec" slot-scope="rec">{{ `${rec.student&&rec.student.course} - ${rec.student&&rec.student.year}${rec.student&&rec.student.section}`  }} </span>
                                     <span slot="date" slot-scope="rec">{{ rec.date }}</span>
@@ -62,8 +59,6 @@
                                         {{ rec.status }}
                                         </a-tag>
                                     </span>
-                                    <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
-                                    <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span> -->
                                     <span slot="action" slot-scope="rec">
                                         <a-tooltip title="Mark as Done">
                                             <a-button type="link" icon="check-circle" style="font-size: 24px;" @click="remove(rec)"></a-button>                                    
@@ -72,7 +67,7 @@
                                 </a-table>
                             </a-tab-pane>
                             <a-tab-pane key="3" tab="Rejected">
-                                <a-table :data-source="filterRejected" :columns="columns">
+                                <a-table :data-source="filterRejected" :columns="columns" :scroll="{ x: 500, y: 300 }">
                                     <span slot="name" slot-scope="rec">{{ `${rec.student&&rec.student.profile&&rec.student.profile.fname} ${rec.student&&rec.student.profile&&rec.student.profile.lname}` }}</span>
                                     <span slot="yr&sec" slot-scope="rec">{{ `${rec.student&&rec.student.course} - ${rec.student&&rec.student.year}${rec.student&&rec.student.section}`  }} </span>
                                     <span slot="date" slot-scope="rec">{{ rec.date }}</span>
@@ -83,8 +78,7 @@
                                         {{ rec.status }}
                                         </a-tag>
                                     </span>
-                                    <!-- <span slot="name" slot-scope="rec">{{ `${rec.student.fname}  ${rec.student.lname}` }}</span>
-                                    <span slot="yr&sec" slot-scope="rec">{{ `${rec.student.course} - ${rec.student.year}${rec.student.section.toUpperCase()}`  }} </span> -->
+                                    
                                     <span slot="action" slot-scope="rec">
                                         <a-tooltip title="Reject">
                                             <a-button type="link" style="color: red;" @click="remove(rec)">remove</a-button>                                    
@@ -92,17 +86,12 @@
                                     </span>
                                 </a-table>
                             </a-tab-pane>
-                        </a-tabs>
-                       
-                        
+                        </a-tabs>          
                     </a-col>
-                    <a-col span="12">
+                    <a-col :span="$breakpoints.sLg ? 24 : 12">
                         <a-card class="card-height">
                             <a-calendar @select="onSelect" class="card-height">
                                 <template slot="dateCellRender" slot-scope="value">
-                                    <!-- <div v-if="hasOpenSchedule(value)">
-                                        <a-badge status="succes" />
-                                    </div> -->
                                     <div class="status">
                                         <div  v-for="item in schedules" :key="item._id">
                                             <div v-if="hasOpenSchedule(value, item)">
@@ -138,7 +127,7 @@
 import Cookies from 'js-cookie';
 import moment from 'moment';
 export default {
-    layout: 'main',
+    layout: 'header',
     data(){
         return{
             profInfo: [],

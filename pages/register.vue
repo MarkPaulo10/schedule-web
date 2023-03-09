@@ -1,6 +1,5 @@
 <template>
     <div class="body" :style="'height: 100%'">
-        {{ $breakpoints }}
         <a-row type="flex" justify="center" >
             <div class="card-position" :style="$breakpoints.sSm ? 'padding-top: 100px' : 'padding-top: 30px'">
                 <a-card class="card" :style="$breakpoints.sSm ? 'width: 100%' : ''">

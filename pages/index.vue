@@ -1,6 +1,5 @@
 <template>
   <div class="body">
-    {{  $breakpoints }}
     <a-row type="flex" justify="center" >
      
       <div class="card-position">

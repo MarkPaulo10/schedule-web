@@ -89,7 +89,6 @@
 </template>
   
 <script>
-import { urlToHttpOptions } from 'url';
 import style from '../assets/css/style.css';
   export default {
     name: "IndexPage",
@@ -149,6 +148,7 @@ import style from '../assets/css/style.css';
                                 this.form.userId = data._id
                                 let profdata = await this.$axios.post("/teachers/", this.form)
                                 console.log("profData: >>", profdata.data); 
+                                
                                 
                             } else {
                                 console.log("student");

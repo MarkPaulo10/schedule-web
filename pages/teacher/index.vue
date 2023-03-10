@@ -5,6 +5,9 @@
         </a-card>
 
         <a-card class="card-height" :style=" $breakpoints.sSm ? 'padding: 10px 0px' : 'padding: 30px'">
+            <a-row type="flex" justify="end">
+                <a-button @click="changePassButton">Change password</a-button>
+            </a-row>
             <a-row type="flex" justify="center" :gutter="[20, 20]">
                 <a-col :span="$breakpoints.md ? '24' : $breakpoints.sMd ? '24' : '18'">
                     <a-row type="flex" justify="center">
@@ -51,7 +54,7 @@
             </a-row>
            
         </a-card>
-       
+        <change-password :visible="showModal" :form="passwordForm" @close="showModal = false" @submit="saveBtn"/>
     </div>
 </template>
 
@@ -61,6 +64,7 @@ export default {
     layout: 'header',
     data(){
         return{
+            passwordForm: {},
             users: [],
             profInfo: [],
             form: {},
@@ -68,7 +72,8 @@ export default {
                 fname: { required: true, message: 'Please input username', trigger: 'change'},
                 lname: { required: true, message: 'Please input username', trigger: 'change'},
                 subject: { required: true, message: 'Please input username', trigger: 'change'},
-            }
+            },
+            showModal: false
 
         }
     },
@@ -117,6 +122,39 @@ export default {
                 // console.log("teacherInfo: >>", result.data );
             } catch (error) {
                 console.log(error);
+            }
+        },
+        changePassButton(){
+            this.showModal = true;
+        },
+        async saveBtn(item){
+            if(item.password != item.confirmPassword){
+                this.$notification.error({
+                    message: 'Error',
+                    description: 'Password Doesn`t match!'
+                })
+            } else {
+                item._id = this.users._id;
+                let {data} = await this.$axios.put('/users/', item)
+                if(data.message == 'Unauthorized'){
+                    this.$notification.error({
+                        message: "Error",
+                        description: 'Unable to change your password'
+                    })   
+                    item.password = "";
+                    item.confirmPassword = "";
+                } else {
+                    this.$notification.success({
+                        message: "Success",
+                        description: 'Successfully updated your password'
+                    }) 
+                    item.password = "";
+                    item.confirmPassword = "";
+                    this.showModal = false; 
+                }
+                
+                console.log("data: >>", data);
+                
             }
         }
     }

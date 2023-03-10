@@ -285,6 +285,8 @@ export default {
         async acceptAppointment(item){
             try {
                 let {data} = await this.$axios.put(`/schedules/${item._id}`, {status: "approved"})
+                let form = {name: `${this.profInfo.profile.fname} ${this.profInfo.profile.lname}`, description: `Accepted your appointment`, studentId: item.studentId, status: 'Unviewed'}
+                let result  = await this.$axios.post("/notifications", form);
                 console.log("acceptResult:>>", data);
                 await this.$fetch();
             } catch (error) {
@@ -294,6 +296,8 @@ export default {
         async rejectAppoint(item){
             try {
                 let {data} = await this.$axios.put(`/schedules/${item._id}`, { status: "rejected"})
+                let form = {name: `${this.profInfo.profile.fname} ${this.profInfo.profile.lname}`, description: `Rejected your appointment`, studentId: item.studentId, status: 'Unviewed'}
+                let result = await this.$axios.post("/notifications", form)
                 console.log("rejectResult: >>", data)
                 await this.$fetch();
             } catch (error) {
@@ -319,6 +323,10 @@ export default {
                 }else {
                     let alreadyOpen = this.schedules.filter( e => moment(e.date).format("YYYY-MM-DD") == moment(this.date).format("YYYY-MM-DD"))
                     if(!alreadyOpen.length){
+                        this.$notification.success({
+                            message: 'Success',
+                            description: 'Successfully add schedule'
+                        })
                         let result = await this.$axios.post('/schedules', {
                             date: this.date,
                             teacherId: this.profInfo._id

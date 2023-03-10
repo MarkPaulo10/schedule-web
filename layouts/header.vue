@@ -6,7 +6,7 @@
                     <a-row type="flex" justify="space-between">
                         <a-col>
                             <div class="header-title">
-                                <h1 style="color: #fff">Scheduling System</h1>
+                                <h1 style="color: #fff; font-size: 25px">Scheduling System</h1>
                             </div>
                         </a-col >
                         <a-col :style="$breakpoints.sSm ? 'display: block': 'display: none'">
@@ -30,12 +30,31 @@
                                 <a-menu-item key="/" @click="navigate">
                                     <a-icon type="logout" />
                                 </a-menu-item>
-                            
                             </a-menu>
                             </a-drawer>
                         </a-col>
                         <a-col :style="$breakpoints.sSm ? 'display: none': ''">
-                            <a-icon type="logout" style="margin-right: 30px; margin-top: 20px; font-size: 25px; color: #fff;" @click="logout"/>
+                            <a-row type="flex" justify="space-between" align="center">
+                                <a-col>
+                                    <a-tooltip title="Notifications">
+                                        <a-badge :count="notifications.length">
+                                            <a-icon type="bell" id="bell" class="icons" @click="notification"></a-icon>
+                                        </a-badge>
+                                    </a-tooltip>
+                                    
+                                </a-col>
+                                <a-col>
+                                    <a-tooltip title="Logout">
+                                        <a-icon type="logout" class="icons"  @click="logout"/>
+                                    </a-tooltip>
+                                </a-col>
+                            </a-row>
+                            <div>
+
+                                
+                                
+                            </div>
+                          
                         </a-col>
                     </a-row>
                 </a-layout-header>
@@ -91,6 +110,7 @@ export default {
         return {
             users: [],
             profile: [],
+            notifications: [],
             menus: [
                 { icon: 'user', path: '/profile', name: 'Profile' },
                 { icon: 'calendar', path: '/schedule', name: 'Schedule' },
@@ -100,6 +120,10 @@ export default {
     },
     async fetch(){
         await this.getProfile();
+        let token = Cookies.get('token')
+        if(!token){
+            this.$router.push('/')
+        }
         
     },
     methods: {
@@ -137,16 +161,21 @@ export default {
         async loadData(role, id) {
             return await this.$axios.get(`/${role}/${id}`);
         },
+        async getNotif(role, id){
+            return await this.$axios.get(`/notifications/${role}/${id}`)
+        },
         async getProfile(){
            try {
-             let token = Cookies.get('token');
-             let {data} = await this.$axios.get("/users/profile", { headers: { "token": token}});
-             this.users = data
-
-             let record = await this.loadData(data.role == 'professor' ? 'teachers' : 'students', data._id);
-            console.log("record: >>", record);
-             this.profile = record.data
-             
+                let token = Cookies.get('token');
+                let {data} = await this.$axios.get("/users/profile", { headers: { "token": token}});
+                this.users = data
+                let record = await this.loadData(data.role == 'professor' ? 'teachers' : 'students', data._id);
+                console.log("record: >>", record);
+                this.profile = record.data;
+                console.log("data Role", data.role == "professor" ? 'teachers' : 'students');
+                let notifs = await this.getNotif(data.role == 'professor' ? 'teachers' : 'students', this.profile._id);
+                this.notifications = notifs.data;
+                console.log("notifications: >>", notifs);
            } catch (error) {
             console.log(error);
            }
@@ -166,6 +195,9 @@ export default {
         },
         studentName(item){
             return `${item.profile&&item.profile.fname} ${item.profile&&item.profile.lname}`
+        },
+        async notification(){
+
         }
         
     }
@@ -185,6 +217,21 @@ export default {
     max-width: 280px !important;
     min-width: 280px !important;
     box-shadow: 8px 0px 8px -10px lightblue;
+}
+.icons{
+    margin-right: 30px; 
+    margin-top: 20px; 
+    font-size: 25px; 
+    color: #fff;
+}
+.icons:hover{
+    color: #cdc8c8;
+
+}
+.ant-scroll-number{
+    position: absolute;
+    top: 20px;
+    right: 35px;
 }
 
 </style>

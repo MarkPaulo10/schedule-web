@@ -5,6 +5,9 @@
         </a-card>
 
         <a-card class="card-height" :style=" $breakpoints.sSm ? 'padding: 10px 0px' : 'padding: 30px'">
+            <a-row type="flex" justify="end">
+                <a-button @click="changePassButton">Change password</a-button>
+            </a-row>
             <a-row type="flex" justify="center" :gutter="[20, 20]">
                 <a-col :span="$breakpoints.md ? '24' : $breakpoints.sMd ? '24' : '18'">
                     <a-row type="flex" justify="center">
@@ -84,7 +87,7 @@
             </a-row>
            
         </a-card>
-       
+        <change-password :visible="showModal" :form="passwordForm" @close="showModal = false" @submit="saveBtn"/>
     </div>
 </template>
 
@@ -94,7 +97,9 @@ export default {
     layout: 'header',
     data(){
         return{
+            passwordForm: {},
             profile: {},
+            users: [],
             students: [],
             appointments: [],
             columns: [
@@ -122,7 +127,8 @@ export default {
                 course: { required: true, message: 'Please fill up this fields', trigger: 'change'},
                 year: { required: true, message: 'Please fill up this fields', trigger: 'change'},
                 section: { required: true, message: 'Please fill up this fields', trigger: 'change'},
-            }
+            },
+            showModal: false
         }
     },
     computed: {
@@ -137,6 +143,7 @@ export default {
            try {
              let token = Cookies.get('token');
              let {data} = await this.$axios.get("/users/profile", { headers: { "token": token}});
+             this.users = data;
              let studentData = await this.$axios.get(`/students/${data._id}`);
 
              this.students = studentData.data
@@ -198,6 +205,41 @@ export default {
                 
             } catch (error) {
                 console.log(error);
+            }
+        },
+        changePassButton(){
+            this.showModal = true; 
+        },
+        async saveBtn(item){
+            if(item.password != item.confirmPassword){
+                this.$notification.error({
+                    message: 'Error',
+                    description: 'Password Doesn`t match!'
+                })
+            } else {
+                item._id = this.users._id;
+
+                console.log("profile", this.users);
+                let {data} = await this.$axios.put('/users/', item)
+                if(data.message == 'Unauthorized'){
+                    this.$notification.error({
+                        message: "Error",
+                        description: 'Unable to change your password'
+                    })   
+                    item.password = "";
+                    item.confirmPassword = "";
+                } else {
+                    this.$notification.success({
+                        message: "Success",
+                        description: 'Successfully updated your password'
+                    })
+                    item.password = "";
+                    item.confirmPassword = "";
+                    this.showModal = false; 
+                }
+                
+                console.log("data: >>", data);
+                
             }
         }
 

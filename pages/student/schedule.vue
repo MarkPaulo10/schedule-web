@@ -273,6 +273,9 @@ export default {
                                 console.log("this.form",this.form);
                                 let appointment = await this.$axios.post("/schedules/appointment", this.form);
                                 console.log("result: >>", appointment);
+                                   
+                                let form = {name: `${this.students.profile.fname} ${this.students.profile.lname}`, description: `Has booked this date '${this.dateFormatter(this.form.date)}'`, teacherId: this.form.teacherId, status: 'Unviewed'}
+                                let notifications = await this.$axios.post("/notifications", form)
                                 this.form.teacherId = "";
                                 await this.$fetch();
                            }
@@ -308,6 +311,8 @@ export default {
                 console.log("cancel");
                 console.log("cancel: >>", item);
                 let {data} = await this.$axios.put(`/schedules/${item._id}`, { status: 'cancelled'})
+                let form = {name: `${this.students.profile.fname} ${this.students.profile.lname}`, description: `Has cancel the appointment '${this.dateFormatter(this.form.date)}'`, teacherId: item.teacherId, status: 'Unviewed'}
+                let result = await this.$axios.post("/notifications", form)
                 await this.$fetch();
             } catch (error) {
                 console.log(error);
@@ -316,6 +321,8 @@ export default {
         async setAppointment(item){
             try {
                 let {data} = await this.$axios.put(`/schedules/${item._id}`, { status: 'pending'})
+                let form = {name: `${this.students.profile.fname} ${this.students.profile.lname}`, description: `Has booked this date '${this.dateFormatter(this.form.date)}'`, teacherId: item.teacherId, status: 'Unviewed'}
+                let result = await this.$axios.post("/notifications", form)
                 await this.$fetch();
 
             } catch (error) {
@@ -323,7 +330,7 @@ export default {
             }
             console.log("submit");
         },
-        async remove(rec){
+        async remove(item){
             try {
                 let {data} = await this.$axios.put(`/schedules/${item._id}`, { isActive: false })
                 await this.$fetch();

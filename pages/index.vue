@@ -23,7 +23,15 @@
                     <a-button type="primary" block @click="login">Login</a-button>
                   </div>
                   <div style="margin-top: 20px;">
-                    <p>No account click here! <a @click="$router.push('/register')">Create account</a></p>
+                    <a-row type="flex" justify="space-between">
+                      <a-col >
+                        <p>No account click here! <a @click="$router.push('/register')">Create account</a></p>
+                      </a-col>
+                      <a-col>
+                        <a @click="$router.push('/forgot-password')">Forgot password?</a>
+                      </a-col>
+                    </a-row>
+                    
                   </div>
                 </a-col>
               </a-row>
